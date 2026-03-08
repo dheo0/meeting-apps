@@ -137,20 +137,16 @@ function formatTime(sec) {
   return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
 }
 
-/* ── Claude API 호출 ─────────────────────────────── */
+/* ── Groq API 호출 (서버리스 프록시) ────────────── */
 async function callClaude(system, user) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/summarize", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      system,
-      messages: [{ role: "user", content: user }],
-    }),
+    body: JSON.stringify({ system, user }),
   });
   const data = await res.json();
-  return data.content?.map(b => b.text || "").join("") || "";
+  if (data.error) throw new Error(data.error);
+  return data.text || "";
 }
 
 /* ── iOS 감지 ────────────────────────────────────── */
