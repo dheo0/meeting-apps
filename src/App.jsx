@@ -344,23 +344,27 @@ export default function App() {
     setIsTranslating(true);
     setTranslation("");
 
+    const langPrompts = {
+      ko: "You are a professional Korean translator. Translate the given text into modern Korean (한글). IMPORTANT: Do NOT use Chinese characters (漢字/한자). Use only pure Korean (순우리말) or commonly used Korean words written in Hangul. Output only the translated text.",
+      zh: "You are a professional Chinese translator. Translate the given text into Simplified Chinese (简体中文) accurately and naturally. Output only the translated text.",
+    };
+    const defaultPrompt = `You are a professional translator. Translate the given text into ${langInfo.label} accurately and naturally. Output only the translated text, no explanation.`;
+    const systemPrompt = langPrompts[langCode] || defaultPrompt;
+
     try {
-      const result = await callClaude(
-        `You are a professional translator. Translate the Korean text into ${langInfo.label} accurately and naturally. Output only the translated text, no explanation.`,
-        src
-      );
+      const result = await callClaude(systemPrompt, src);
       setTranslation(result || "번역 실패");
     } catch { setTranslation("번역 중 오류가 발생했습니다."); }
     setIsTranslating(false);
   };
 
-  /* ── 실시간 자동 번역 (녹음 중 3초 디바운스) ── */
+  /* ── 실시간 자동 번역 (녹음 중 1.5초 디바운스) ── */
   useEffect(() => {
     if (!activeLang || status !== "recording" || !transcript.trim()) return;
     clearTimeout(autoTranslateRef.current);
     autoTranslateRef.current = setTimeout(() => {
       translate(activeLang);
-    }, 3000);
+    }, 1500);
     return () => clearTimeout(autoTranslateRef.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcript, activeLang, status]);
