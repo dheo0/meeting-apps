@@ -13,6 +13,7 @@ const C = {
 
 /* ── 번역 언어 목록 ──────────────────────────────── */
 const LANGS = [
+  { code: "ko", label: "한국어",      flag: "🇰🇷" },
   { code: "en", label: "English",    flag: "🇺🇸" },
   { code: "ja", label: "日本語",      flag: "🇯🇵" },
   { code: "zh", label: "中文",        flag: "🇨🇳" },
@@ -180,14 +181,26 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("transcript");
 
   /* refs */
-  const recRef      = useRef(null);
-  const timerRef    = useRef(null);
-  const bgTimerRef  = useRef(null);
-  const bgSecRef    = useRef(0);
-  const intentRef   = useRef(false);
-  const statusRef   = useRef("idle");
+  const recRef           = useRef(null);
+  const timerRef         = useRef(null);
+  const bgTimerRef       = useRef(null);
+  const bgSecRef         = useRef(0);
+  const intentRef        = useRef(false);
+  const statusRef        = useRef("idle");
+  const autoTranslateRef = useRef(null);
 
   useEffect(() => { statusRef.current = status; }, [status]);
+
+  /* ── 실시간 자동 번역 (녹음 중 3초 디바운스) ── */
+  useEffect(() => {
+    if (!activeLang || !isRecording || !transcript.trim()) return;
+    clearTimeout(autoTranslateRef.current);
+    autoTranslateRef.current = setTimeout(() => {
+      translate(activeLang);
+    }, 3000);
+    return () => clearTimeout(autoTranslateRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transcript, activeLang, isRecording]);
 
   /* ── 음성 인식 실행 ── */
   const launchRecognition = useCallback(() => {
@@ -630,14 +643,14 @@ export default function App() {
           )}
 
           {/* ── 번역 ── */}
-          {isStopped && (hasContent || summary) && (
+          {(isRecording || isStopped) && hasContent && (
             <Card borderColor={C.blueDim}>
               <SectionTitle icon="🌐" label="번역" />
 
               {/* 번역 소스 선택 */}
               <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
                 {[
-                  { key: "summary",    label: "요약본",    disabled: !summary },
+                  { key: "summary",    label: "요약본",    disabled: !summary || isRecording },
                   { key: "transcript", label: "받아쓰기",   disabled: !hasContent },
                   { key: "memo",       label: "메모",      disabled: !memo.trim() },
                 ].map(opt => (
@@ -686,7 +699,7 @@ export default function App() {
                 <div>
                   <div style={{ fontSize: 11, color: C.muted, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
                     {LANGS.find(l => l.code === activeLang)?.flag}{" "}
-                    {LANGS.find(l => l.code === activeLang)?.label}으로 번역
+                    {LANGS.find(l => l.code === activeLang)?.label}으로 {isRecording ? "실시간 번역 중" : "번역"}
                     {isTranslating && <Spinner color={C.blue} />}
                   </div>
                   <div style={{
