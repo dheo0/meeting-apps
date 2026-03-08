@@ -356,14 +356,14 @@ export default function App() {
 
   /* ── 실시간 자동 번역 (녹음 중 3초 디바운스) ── */
   useEffect(() => {
-    if (!activeLang || !isRecording || !transcript.trim()) return;
+    if (!activeLang || status !== "recording" || !transcript.trim()) return;
     clearTimeout(autoTranslateRef.current);
     autoTranslateRef.current = setTimeout(() => {
       translate(activeLang);
     }, 3000);
     return () => clearTimeout(autoTranslateRef.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transcript, activeLang, isRecording]);
+  }, [transcript, activeLang, status]);
 
   /* ── 파생 상태 ── */
   const isRecording   = status === "recording";
