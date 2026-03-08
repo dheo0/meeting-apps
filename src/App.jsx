@@ -191,17 +191,6 @@ export default function App() {
 
   useEffect(() => { statusRef.current = status; }, [status]);
 
-  /* ── 실시간 자동 번역 (녹음 중 3초 디바운스) ── */
-  useEffect(() => {
-    if (!activeLang || !isRecording || !transcript.trim()) return;
-    clearTimeout(autoTranslateRef.current);
-    autoTranslateRef.current = setTimeout(() => {
-      translate(activeLang);
-    }, 3000);
-    return () => clearTimeout(autoTranslateRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transcript, activeLang, isRecording]);
-
   /* ── 음성 인식 실행 ── */
   const launchRecognition = useCallback(() => {
     const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -364,6 +353,17 @@ export default function App() {
     } catch { setTranslation("번역 중 오류가 발생했습니다."); }
     setIsTranslating(false);
   };
+
+  /* ── 실시간 자동 번역 (녹음 중 3초 디바운스) ── */
+  useEffect(() => {
+    if (!activeLang || !isRecording || !transcript.trim()) return;
+    clearTimeout(autoTranslateRef.current);
+    autoTranslateRef.current = setTimeout(() => {
+      translate(activeLang);
+    }, 3000);
+    return () => clearTimeout(autoTranslateRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transcript, activeLang, isRecording]);
 
   /* ── 파생 상태 ── */
   const isRecording   = status === "recording";
